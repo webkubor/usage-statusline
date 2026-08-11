@@ -4,14 +4,14 @@ A Claude Code status line that shows session cost, context-window usage, and
 your 5-hour / 7-day rate-limit usage — right where you're already looking.
 
 ```
-my-project main  $0.62·ctx 7%·5h 7%(4h)·7d 8%(5d)
+my-project main  $0.62·ctx 7%·5h 7%(20:10)·7d 8%(08-17)
 ```
 
 - `my-project main` — current directory name + git branch (branch omitted outside a repo)
 - `$0.62` — total cost of the current session
 - `ctx 7%` — context window used
-- `5h 7%(4h)` — 5-hour rate-limit window: 7% used, resets in ~4 hours
-- `7d 8%(5d)` — 7-day rate-limit window: 8% used, resets in ~5 days
+- `5h 7%(20:10)` — 5-hour rate-limit window: 7% used, resets at 20:10
+- `7d 8%(08-17)` — 7-day rate-limit window: 8% used, resets on 08-17
 
 Colors: green/gray under 50%, yellow at 50–79%, red at 80%+. Respects `NO_COLOR`.
 

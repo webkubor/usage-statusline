@@ -3,6 +3,7 @@
 5-hour / 7-day rate-limit usage. Reads the JSON payload Claude Code pipes
 to statusLine commands on stdin. No network access, no external state.
 """
+import datetime
 import json
 import os
 import subprocess
@@ -71,15 +72,11 @@ def window(label, w):
     resets_at = w.get("resets_at")
     remain = ""
     if resets_at:
-        delta = resets_at - now
-        if delta > 0:
-            hours = int(delta // 3600)
-            if hours >= 24:
-                remain = f"({hours // 24}d)"
-            elif hours > 0:
-                remain = f"({hours}h)"
-            else:
-                remain = f"({int(delta // 60)}m)"
+        delta_hours = (resets_at - now) / 3600
+        dt = datetime.datetime.fromtimestamp(resets_at)
+        # <20h shows a clock time (fits the 5h window, incl. overnight resets);
+        # further out shows a date (fits the 7-day window, where the day is what matters).
+        remain = f"({dt.strftime('%H:%M')})" if delta_hours < 20 else f"({dt.strftime('%m-%d')})"
     return f"{color(pct)}{label} {pct:.0f}%{remain}{RESET}"
 
 
