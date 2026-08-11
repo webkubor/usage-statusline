@@ -23,7 +23,7 @@ required by Claude Code itself) and, optionally, `git` for the branch name.
 ### Option A — as a Claude Code Skill (recommended)
 
 ```bash
-git clone https://github.com/<you>/claude-usage-statusline ~/.claude/skills/usage-statusline
+git clone https://github.com/webkubor/usage-statusline ~/.claude/skills/usage-statusline
 ```
 
 Open Claude Code and run:
@@ -40,8 +40,8 @@ you what's already there and ask first.
 ### Option B — plain shell install
 
 ```bash
-git clone https://github.com/<you>/claude-usage-statusline
-cd claude-usage-statusline
+git clone https://github.com/webkubor/usage-statusline
+cd usage-statusline
 ./install.sh
 ```
 
