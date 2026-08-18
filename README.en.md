@@ -28,7 +28,7 @@ This status line keeps three things in front of you: **is the context filling up
 ## Reading the line
 
 ```
-my-project main ±3 ↑2                              ← directory + git state (+ your own segments)
+my-project main ±3 ↑2  Opus 5·high                 ← directory + git state + model (+ your own segments)
 ~$4.48·ctx █░░░░░░░░░ 11%·5h █░░░░░░░░░ 4%(15:40)·7d ██░░░░░░░░ 21%(08-24)
 ```
 
@@ -38,6 +38,7 @@ my-project main ±3 ↑2                              ← directory + git state 
 | `main` | git branch (hidden outside a repo) |
 | `±3` | **3 files changed but not committed** (untracked files included) |
 | `↑2` | **2 commits not pushed**; behind the remote shows as `↓N` |
+| `Opus 5·high` | Current model + effort level; fast mode adds `·fast` |
 | `~$4.48` | Session spend. **The `~` means "equivalent, not billed"** — see below |
 | `ctx … 11%` | Context window used |
 | `5h … 4%(15:40)` | 5-hour limit: 4% used, resets at 15:40 |
@@ -46,6 +47,9 @@ my-project main ±3 ↑2                              ← directory + git state 
 git markers **appear only when there's something to say**: a clean tree in sync with its
 remote leaves just the branch name. A quiet status line means a quiet repo — no need to
 run `git status` to confirm.
+
+Model and effort level stay visible because they get **switched mid-session and forgotten** —
+spending an afternoon on a level you meant to set temporarily is a silent, expensive mistake.
 
 > Deliberately no cloud/emoji icons here: emoji are double-width in terminals and their
 > width varies by font, which makes the whole line jump around and knocks the bars out of
@@ -108,6 +112,18 @@ When a window is **≥80%** with **no pay-as-you-go fallback**, the status line 
 Meaning: continuing isn't "spend a bit more", it's **stop working until 15:40**. Knowing in advance lets you wrap up deliberately instead of getting cut off mid-task.
 
 (Pay-as-you-go accounts never show this — there's no fallback to lose; going over simply keeps billing.)
+
+### What `⚠200k+` means
+
+Past 200k input tokens, the **long-context price tier** applies and the per-token rate goes up.
+That only costs real money on pay-as-you-go, so subscriptions aren't nagged about it:
+
+```
+ctx ██░░░░░░░░ 22% ⚠200k+
+```
+
+The marker states the fact (you've crossed 200k) rather than a multiplier — the multiplier
+varies by model.
 
 Detection reads `oauthAccount.billingType`, `hasExtraUsageEnabled`, and `cachedExtraUsageDisabledReason` from `~/.claude.json`. If none of it can be read, it degrades safely: no tilde, no warning.
 

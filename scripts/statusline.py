@@ -161,6 +161,25 @@ def billing():
     }
 
 
+def model_label(payload):
+    """`Opus 5·high` — which model and effort level this session is actually on.
+
+    Worth carrying because these are switched mid-session and easily forgotten:
+    finishing an afternoon on a model or effort level you meant to set temporarily
+    is a silent, expensive mistake. Fast mode is called out for the same reason.
+    """
+    name = (payload.get("model") or {}).get("display_name")
+    if not name:
+        return ""
+    parts = [name]
+    level = (payload.get("effort") or {}).get("level")
+    if level:
+        parts.append(level)
+    if payload.get("fast_mode"):
+        parts.append("fast")
+    return dim("·".join(parts))
+
+
 def git_state(cwd):
     """Branch, unpushed/unpulled commit counts, and dirty-file count in one call.
 
@@ -261,6 +280,10 @@ if cwd:
         label += f" {git}"
     head.append(label)
 
+model = model_label(payload)
+if model:
+    head.append(model)
+
 head.extend(extension_segments())
 
 # --- line 2: cost and the three usage gauges --------------------------------
@@ -276,7 +299,11 @@ if cost is not None:
 
 ctx_pct = (payload.get("context_window") or {}).get("used_percentage")
 if ctx_pct is not None:
-    metrics.append(gauge("ctx", ctx_pct))
+    # Past 200k input tokens the long-context price tier kicks in. That only costs
+    # real money on pay-as-you-go, so subscriptions aren't nagged about it — and
+    # the marker states the fact rather than a multiplier, which varies by model.
+    over = payload.get("exceeds_200k_tokens") and pay and not pay["subscription"]
+    metrics.append(gauge("ctx", ctx_pct, " ⚠200k+" if over else ""))
 
 now = time.time()
 
