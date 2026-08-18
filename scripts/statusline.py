@@ -393,7 +393,7 @@ def stamp(ts):
     return dt.strftime("%H:%M") if (ts - now) / 3600 < 20 else dt.strftime("%m-%d")
 
 
-def window(label, w, history_key):
+def window(label, w, history_key, predict):
     if not w:
         return None
     pct = w.get("used_percentage")
@@ -409,21 +409,27 @@ def window(label, w, history_key):
         suffix += " ⚠hard stop"
     if resets_at:
         suffix += f"({stamp(resets_at)})"
-        # Shown only when the current pace runs the window out *before* it resets:
-        # that is the case where the percentage alone misleads, because 40% used
-        # is fine on day six and a problem on day one. Burning slower than the
-        # reset needs no comment, so it gets none.
-        eta = project_exhaustion(history, history_key, pct, resets_at, now)
-        if eta and eta < resets_at:
-            mark = f"→full {stamp(eta)}"
-            suffix += " " + (mark if NO_COLOR else f"{ramp(85)}{mark}{RESET}{color(pct)}")
+        # Shown only when the current pace runs the window out *before* it resets,
+        # and only for short windows. Extrapolating an hour of active work across a
+        # multi-day window assumes you never stop to sleep, which makes almost any
+        # sustained use trip the warning — a predictor that always fires is noise,
+        # not information. Within a 5-hour window you are plausibly still working,
+        # so the slope means something.
+        if predict:
+            eta = project_exhaustion(history, history_key, pct, resets_at, now)
+            if eta and eta < resets_at:
+                mark = f"→full {stamp(eta)}"
+                suffix += " " + (mark if NO_COLOR else f"{ramp(85)}{mark}{RESET}{color(pct)}")
     return gauge(label, pct, suffix)
 
 
 rate_limits = payload.get("rate_limits") or {}
 history = sample_history(rate_limits, now)
-for label, key, hkey in (("5h", "five_hour", "5"), ("7d", "seven_day", "7")):
-    rendered = window(label, rate_limits.get(key), hkey)
+for label, key, hkey, predict in (
+    ("5h", "five_hour", "5", True),
+    ("7d", "seven_day", "7", False),
+):
+    rendered = window(label, rate_limits.get(key), hkey, predict)
     if rendered:
         metrics.append(rendered)
 

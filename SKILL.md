@@ -36,8 +36,9 @@ my-project main
 而是直接停到窗口重置。判断读 `~/.claude.json` 的 `oauthAccount.billingType`、
 `hasExtraUsageEnabled`、`cachedExtraUsageDisabledReason`；读不到则安全降级（不加波浪号、不报警）。
 
-按当前燃烧速度外推，若会在窗口重置**之前**撞满，会标 `→full 16:39`（预计撞满时刻）；
-烧得比重置慢就不显示。这个预测需要采样历史，是本脚本**唯一会写的文件**：
+按当前燃烧速度外推，若会在窗口重置**之前**撞满，会标 `→full 14:46`（预计撞满时刻）；
+烧得比重置慢就不显示。**只对 5h 窗口预测，7d 不预测**——把一小时的活跃速度外推到三天
+等于假设不睡觉，会让预警几乎永远亮着。这个预测需要采样历史，是本脚本**唯一会写的文件**：
 `~/.claude/statusline/history.jsonl`（每 60 秒最多一点、最多 400 行、17 KB 封顶、纯缓存可删）。
 用户不想要任何状态文件时告诉他设 `USAGE_STATUSLINE_NO_HISTORY=1`。
 

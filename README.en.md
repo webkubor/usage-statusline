@@ -115,21 +115,26 @@ Meaning: continuing isn't "spend a bit more", it's **stop working until 15:40**.
 
 ### `→full` — "this pace won't make it to the reset"
 
-A percentage on its own misleads: **40% of your weekly limit is fine on day six and a problem
-on day one.** So the gauge doesn't just show how much you've used — it extrapolates your
-**current burn rate**, and if that would run the window out *before* it resets, it says when:
+A percentage alone doesn't tell you whether you'll make it through the current stretch. So the
+5-hour gauge extrapolates your **current burn rate**, and if that would exhaust the window
+*before* it resets, it says when:
 
 ```
-7d ████░░░░░░ 40%(08-21) →full 16:39
+5h █████░░░░░ 46%(18:00) →full 14:46
 ```
 
-Read as: the weekly window doesn't reset until 08-21, but at this pace **you'll be out at 16:39 today**.
+Read as: the 5h window doesn't reset until 18:00, but at this pace **you'll be out at 14:46**.
 
 Burning slower than the reset shows nothing — there's nothing to say, so it says nothing.
 
-Extrapolation needs at least **10 minutes** of samples: two adjacent points right after a reset
-only produce confident nonsense. When a window rolls over (`resets_at` changes), old samples stop
-counting, so last window's slope is never dragged into this one.
+**Only the 5-hour window is projected, never the 7-day one.** That's deliberate: extrapolating an
+hour of active work across three days assumes you never stop to sleep, which makes almost any
+sustained use trip the warning — a predictor that always fires is noise, not information. Inside a
+5-hour window you're plausibly still working, so the slope actually means something.
+
+Two more guards against confident nonsense: extrapolation needs at least **10 minutes** of samples
+(two adjacent points right after a reset produce garbage), and when a window rolls over
+(`resets_at` changes) old samples stop counting, so last window's slope is never dragged in.
 
 The projection relies on a sample file — see [the one file it writes](#the-one-file-it-writes);
 you can turn it off.
@@ -256,7 +261,7 @@ Want something that looks right without configuring anything, in 440 lines you c
 | 7-day limit | ✅ | ✅ | — | — |
 | Subscription vs pay-as-you-go | ✅ via `~` prefix | Partial (shows extra-usage amount + currency) | — | — |
 | **Hard-stop warning** | ✅ `⚠hard stop` | not documented | not documented | not documented |
-| **Burn-rate projection** | ✅ `→full 16:39` | not documented | not documented | not documented |
+| **Burn-rate projection** | ✅ `→full 14:46` (5h window only) | not documented | not documented | not documented |
 | Custom extensions | Drop an executable in a directory | Widget system | Segment config | — |
 | Themes / gradients | ✅ 3 themes, good by default | ✅ via TUI configuration | ✅ | ✅ |
 | Powerline segments | ❌ | ✅ | ✅ | ✅ |
