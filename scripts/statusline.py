@@ -19,6 +19,13 @@ import time
 
 SEGMENTS_DIR = os.path.expanduser("~/.claude/statusline/segments")
 PROFILE = os.path.expanduser("~/.claude.json")
+# The one file this script writes. Purely a cache for burn-rate projection: delete
+# it and you lose the "→full" estimate until it refills, nothing else.
+# Set USAGE_STATUSLINE_NO_HISTORY=1 to keep the script fully stateless.
+HISTORY = os.path.expanduser("~/.claude/statusline/history.jsonl")
+SAMPLE_EVERY = 60    # seconds between recorded samples
+MIN_SPAN = 600       # need this much elapsed time before trusting a slope
+MAX_POINTS = 400
 BAR_WIDTH = 10
 SOLID = "█"      # colored halves (default)
 BAR_FULL = "▓"   # NO_COLOR fallback
@@ -159,6 +166,78 @@ def billing():
         "fallback": bool(account.get("hasExtraUsageEnabled"))
         and not data.get("cachedExtraUsageDisabledReason"),
     }
+
+
+def sample_history(rate_limits, now):
+    """Append the current usage percentages, then return the retained samples.
+
+    Throttled to one point per SAMPLE_EVERY so a status line that redraws on every
+    keystroke doesn't grow the file, and capped at MAX_POINTS so it can't grow
+    without bound. Every failure path returns what we have and moves on — a
+    projection is a nicety, and losing it must never cost you a status line.
+    """
+    if os.environ.get("USAGE_STATUSLINE_NO_HISTORY"):
+        return []
+    rows = []
+    try:
+        with open(HISTORY) as handle:
+            for line in handle:
+                try:
+                    rows.append(json.loads(line))
+                except Exception:
+                    continue  # a torn line from a concurrent write; skip just that one
+    except Exception:
+        pass
+
+    five = rate_limits.get("five_hour") or {}
+    seven = rate_limits.get("seven_day") or {}
+    if not five and not seven:
+        return rows
+    if rows and now - rows[-1].get("t", 0) < SAMPLE_EVERY:
+        return rows
+
+    entry = {"t": int(now)}
+    for key, window in (("5", five), ("7", seven)):
+        if window.get("used_percentage") is not None:
+            entry[key] = window["used_percentage"]
+            entry["r" + key] = window.get("resets_at")
+    rows.append(entry)
+    rows = rows[-MAX_POINTS:]
+    try:
+        os.makedirs(os.path.dirname(HISTORY), exist_ok=True)
+        with open(HISTORY, "w") as handle:
+            for row in rows:
+                handle.write(json.dumps(row) + "\n")
+    except Exception:
+        pass
+    return rows
+
+
+def project_exhaustion(rows, key, pct, resets_at, now):
+    """When the current burn rate would hit 100%, or None if that's not knowable.
+
+    Samples are filtered to the current window by resets_at, so a window that has
+    already rolled over doesn't drag a stale slope along. Needs MIN_SPAN of elapsed
+    time before extrapolating — right after a reset, two close samples produce
+    confident nonsense.
+    """
+    if not resets_at or pct is None:
+        return None
+    points = [
+        (row["t"], row[key])
+        for row in rows
+        if row.get(key) is not None and row.get("r" + key) == resets_at
+    ]
+    if len(points) < 2:
+        return None
+    (t0, p0), (t1, p1) = points[0], points[-1]
+    span = t1 - t0
+    if span < MIN_SPAN:
+        return None
+    rate = (p1 - p0) / span  # percent per second
+    if rate <= 0:
+        return None
+    return now + (100 - pct) / rate
 
 
 def model_label(payload):
@@ -308,7 +387,13 @@ if ctx_pct is not None:
 now = time.time()
 
 
-def window(label, w):
+def stamp(ts):
+    """Clock time for anything within a day, a date beyond that."""
+    dt = datetime.datetime.fromtimestamp(ts)
+    return dt.strftime("%H:%M") if (ts - now) / 3600 < 20 else dt.strftime("%m-%d")
+
+
+def window(label, w, history_key):
     if not w:
         return None
     pct = w.get("used_percentage")
@@ -323,17 +408,22 @@ def window(label, w):
     if pct >= WARN_AT and pay and pay["subscription"] and not pay["fallback"]:
         suffix += " ⚠hard stop"
     if resets_at:
-        delta_hours = (resets_at - now) / 3600
-        dt = datetime.datetime.fromtimestamp(resets_at)
-        # <20h shows a clock time (fits the 5h window, incl. overnight resets);
-        # further out shows a date (fits the 7-day window, where the day is what matters).
-        suffix += f"({dt.strftime('%H:%M')})" if delta_hours < 20 else f"({dt.strftime('%m-%d')})"
+        suffix += f"({stamp(resets_at)})"
+        # Shown only when the current pace runs the window out *before* it resets:
+        # that is the case where the percentage alone misleads, because 40% used
+        # is fine on day six and a problem on day one. Burning slower than the
+        # reset needs no comment, so it gets none.
+        eta = project_exhaustion(history, history_key, pct, resets_at, now)
+        if eta and eta < resets_at:
+            mark = f"→full {stamp(eta)}"
+            suffix += " " + (mark if NO_COLOR else f"{ramp(85)}{mark}{RESET}{color(pct)}")
     return gauge(label, pct, suffix)
 
 
 rate_limits = payload.get("rate_limits") or {}
-for label, key in (("5h", "five_hour"), ("7d", "seven_day")):
-    rendered = window(label, rate_limits.get(key))
+history = sample_history(rate_limits, now)
+for label, key, hkey in (("5h", "five_hour", "5"), ("7d", "seven_day", "7")):
+    rendered = window(label, rate_limits.get(key), hkey)
     if rendered:
         metrics.append(rendered)
 

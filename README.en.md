@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-success)](#how-it-works)
-[![Single file](https://img.shields.io/badge/single%20file-~260%20lines-informational)](./scripts/statusline.py)
+[![Single file](https://img.shields.io/badge/single%20file-~440%20lines-informational)](./scripts/statusline.py)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)](#install)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/webkubor/usage-statusline/pulls)
 
@@ -113,6 +113,27 @@ Meaning: continuing isn't "spend a bit more", it's **stop working until 15:40**.
 
 (Pay-as-you-go accounts never show this — there's no fallback to lose; going over simply keeps billing.)
 
+### `→full` — "this pace won't make it to the reset"
+
+A percentage on its own misleads: **40% of your weekly limit is fine on day six and a problem
+on day one.** So the gauge doesn't just show how much you've used — it extrapolates your
+**current burn rate**, and if that would run the window out *before* it resets, it says when:
+
+```
+7d ████░░░░░░ 40%(08-21) →full 16:39
+```
+
+Read as: the weekly window doesn't reset until 08-21, but at this pace **you'll be out at 16:39 today**.
+
+Burning slower than the reset shows nothing — there's nothing to say, so it says nothing.
+
+Extrapolation needs at least **10 minutes** of samples: two adjacent points right after a reset
+only produce confident nonsense. When a window rolls over (`resets_at` changes), old samples stop
+counting, so last window's slope is never dragged into this one.
+
+The projection relies on a sample file — see [the one file it writes](#the-one-file-it-writes);
+you can turn it off.
+
 ### What `⚠200k+` means
 
 Past 200k input tokens, the **long-context price tier** applies and the per-token rate goes up.
@@ -206,24 +227,36 @@ Claude Code pipes a JSON payload to the `statusLine` command in `settings.json` 
 
 Missing fields are skipped. The script never errors out, even on malformed input, so it can't break your status line.
 
-No network calls, no state of its own, no dependencies beyond `python3` (already required by Claude Code) and optionally `git` for the branch name.
+No network calls, and no dependencies beyond `python3` (already required by Claude Code) and optionally `git`.
+
+### The one file it writes
+
+`~/.claude/statusline/history.jsonl` — usage samples, used only for the [`→full` projection](#full--this-pace-wont-make-it-to-the-reset):
+
+- **Pure cache**: delete it and you lose the `→full` estimate for a while, nothing else
+- **Can't grow**: one sample per 60s at most, 400 lines retained, **capped at ~17 KB**
+- **Corruption-safe**: unparseable lines are skipped; an unreadable file just means no projection
+- **Opt out**: `export USAGE_STATUSLINE_NO_HISTORY=1` and the script is fully stateless again
+
+Nothing else is ever written.
 
 ## How it compares
 
 This space is crowded, and some alternatives do **far more** than this one. Straight answer:
 **want powerline segments, a graphical configurator, Git PR/CI status? use ccstatusline.
-Want something that looks right without configuring anything, in 260 lines you can read in one sitting? use this.**
+Want something that looks right without configuring anything, in 440 lines you can read in one sitting? use this.**
 
 | | **usage-statusline** | [ccstatusline](https://github.com/sirmalloc/ccstatusline) | [claude-powerline](https://github.com/Owloops/claude-powerline) | [CCometixLine](https://github.com/Haleclipse/CCometixLine) |
 |---|---|---|---|---|
 | Stars | — | 12.4k | 1.1k | 3.4k |
-| Implementation | Single Python file, ~260 lines | TypeScript / npm | TypeScript / npm | Rust binary |
+| Implementation | Single Python file, ~440 lines | TypeScript / npm | TypeScript / npm | Rust binary |
 | Runtime deps | **None** (`python3` ships with Claude Code) | Node.js | Node.js | Prebuilt binary |
 | Configuration | **None**, works on install | TUI configurator | JSON config | Config file |
 | 5-hour limit | ✅ | ✅ | ✅ | — |
 | 7-day limit | ✅ | ✅ | — | — |
 | Subscription vs pay-as-you-go | ✅ via `~` prefix | Partial (shows extra-usage amount + currency) | — | — |
 | **Hard-stop warning** | ✅ `⚠hard stop` | not documented | not documented | not documented |
+| **Burn-rate projection** | ✅ `→full 16:39` | not documented | not documented | not documented |
 | Custom extensions | Drop an executable in a directory | Widget system | Segment config | — |
 | Themes / gradients | ✅ 3 themes, good by default | ✅ via TUI configuration | ✅ | ✅ |
 | Powerline segments | ❌ | ✅ | ✅ | ✅ |

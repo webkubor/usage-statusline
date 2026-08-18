@@ -7,7 +7,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-success)](#工作原理)
-[![Single file](https://img.shields.io/badge/single%20file-~260%20lines-informational)](./scripts/statusline.py)
+[![Single file](https://img.shields.io/badge/single%20file-~440%20lines-informational)](./scripts/statusline.py)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)](#安装)
 [![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/webkubor/usage-statusline/pulls)
 
@@ -111,6 +111,24 @@ export USAGE_STATUSLINE_THEME=cool     # default | cool | mono
 
 （按量付费账户不会显示这个标记——它没有「兜底」这一说，超了就是继续计费。）
 
+### `→full` ——「照这个烧法撑不到重置」
+
+百分比本身会骗人：**周限额用了 40%，在第六天是没事，在第一天就是麻烦**。所以这里不只显示用了多少，
+还按你**当前的燃烧速度**外推：如果会在窗口重置**之前**撞满，就标出预计撞满的时间：
+
+```
+7d ████░░░░░░ 40%(08-21) →full 16:39
+```
+
+读作：周限额 08-21 才重置，但按现在这个速度，**今天 16:39 就会烧光**。
+
+烧得比重置慢就不显示——这种情况没什么可说的，也就不说。
+
+判断需要至少 **10 分钟**的采样跨度才敢外推：刚重置完拿两个挨着的点算斜率，只会算出很自信的胡话。
+窗口一旦重置（`resets_at` 变了），旧采样点自动失效，不会把上个窗口的斜率拖过来。
+
+预测依赖一个采样文件，见 [它写的唯一一个文件](#它写的唯一一个文件)；不想要可以关掉。
+
 ### `⚠200k+` 是什么
 
 上下文超过 20 万 input token 后会进入**长上下文价档**，单价更高。这只对真正花钱的
@@ -207,24 +225,36 @@ Claude Code 每次渲染状态栏，会把一份 JSON payload 通过 stdin 喂�
 
 任何字段缺失都只是跳过——脚本不会报错，哪怕输入是坏 JSON，也不会弄坏你的状态栏。
 
-无网络请求、无自身状态文件，除了 `python3`（Claude Code 本来就要）和可选的 `git`（取分支名）之外没有依赖。
+无网络请求，除了 `python3`（Claude Code 本来就要）和可选的 `git` 之外没有依赖。
+
+### 它写的唯一一个文件
+
+`~/.claude/statusline/history.jsonl` —— 只为 [`→full` 燃尽预测](#full-照这个烧法撑不到重置) 存用量采样点：
+
+- **纯缓存**：删掉只会让 `→full` 预测消失一阵子，其他一切照常
+- **不会长大**：每 60 秒最多记一个点，最多留 400 行，**17 KB 封顶**
+- **坏了不影响**：解析失败的行直接跳过；整个文件读不了就当没有预测
+- **不想要就关**：`export USAGE_STATUSLINE_NO_HISTORY=1`，脚本回到完全无状态
+
+除此之外脚本不写任何东西。
 
 ## 同类项目对比
 
 Claude Code 状态栏这个赛道已经很热闹，而且有比本项目**功能全得多**的成熟方案。先说结论：
 **要 powerline 分段、要图形化配置器、要 Git PR/CI 状态，去用 ccstatusline；
-要装完不用调就好看、且 260 行源码能一口气读完，用这个。**
+要装完不用调就好看、且 440 行源码能一口气读完，用这个。**
 
 | | **usage-statusline** | [ccstatusline](https://github.com/sirmalloc/ccstatusline) | [claude-powerline](https://github.com/Owloops/claude-powerline) | [CCometixLine](https://github.com/Haleclipse/CCometixLine) |
 |---|---|---|---|---|
 | Star | — | 12.4k | 1.1k | 3.4k |
-| 实现 | 单文件 Python，~260 行 | TypeScript / npm | TypeScript / npm | Rust 二进制 |
+| 实现 | 单文件 Python，~440 行 | TypeScript / npm | TypeScript / npm | Rust 二进制 |
 | 运行依赖 | **无**（`python3` Claude Code 自带） | Node.js | Node.js | 预编译二进制 |
 | 配置 | **零配置**，装完即用 | TUI 配置器 | JSON 配置 | 配置文件 |
 | 5 小时限额 | ✅ | ✅ | ✅ | — |
 | 7 天限额 | ✅ | ✅ | — | — |
 | 订阅 / 按量识别 | ✅ 波浪号区分 | 部分（显示 extra usage 金额与币种） | — | — |
 | **无兜底硬停预警** | ✅ `⚠hard stop` | 未见 | 未见 | 未见 |
+| **燃尽速率预测** | ✅ `→full 16:39` | 未见 | 未见 | 未见 |
 | 自定义扩展 | 丢一个可执行文件进目录 | widget 系统 | segment 配置 | — |
 | 主题 / 渐变 | ✅ 3 套主题，零配置默认好看 | ✅ 需在 TUI 里调 | ✅ | ✅ |
 | Powerline 分段 | ❌ | ✅ | ✅ | ✅ |
@@ -248,7 +278,8 @@ Claude Code 状态栏这个赛道已经很热闹，而且有比本项目**功能
 ## 卸载
 
 删掉 `~/.claude/settings.json` 里的 `statusLine` 字段（或恢复 `settings.json.bak-usage-statusline`），
-再删 `~/.claude/statusline/usage.py`。`~/.claude/statusline/segments/` 里的扩展段是你自己的东西，想清就单独删。
+再删 `~/.claude/statusline/usage.py` 和 `~/.claude/statusline/history.jsonl`。
+`~/.claude/statusline/segments/` 里的扩展段是你自己的东西，想清就单独删。
 
 ## License
 
