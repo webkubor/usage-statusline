@@ -1,21 +1,27 @@
 <div align="center">
 
+<img src="./assets/logo.png" width="84" alt="usage-statusline">
+
 # usage-statusline
 
-**在 Claude Code 状态栏一眼看清：花了多少、上下文还剩多少、限额还够不够、撞满会不会直接停。**
+### 给 **Claude Code** 的状态栏
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](./LICENSE)
+**花了多少、上下文还剩多少、限额还够不够、撞满会不会直接停——都在你已经在看的那一行里。**
+
+[![for Claude Code](https://img.shields.io/badge/for-Claude%20Code-D97757?logo=anthropic&logoColor=white)](https://claude.com/claude-code)
+[![statusLine API](https://img.shields.io/badge/uses-statusLine%20hook-D97757?logo=anthropic&logoColor=white)](https://docs.claude.com/en/docs/claude-code/statusline)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-success)](#工作原理)
 [![Single file](https://img.shields.io/badge/single%20file-~440%20lines-informational)](./scripts/statusline.py)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)](#安装)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/webkubor/usage-statusline/pulls)
 
 [English](./README.en.md) · [快速安装](#安装) · [订阅 vs 按量](#订阅制-vs-按量付费) · [扩展段](#扩展段把你自己的东西加上去) · [同类对比](#同类项目对比)
 
-<img src="./assets/statusline.png" width="900" alt="状态栏效果：订阅制、额度告急、按量付费三种形态">
+<img src="./assets/statusline.png" width="900" alt="Claude Code 状态栏效果：订阅制、额度告急、按量付费、主题">
 
 `Claude Code` · `statusline` · `状态栏` · `用量监控` · `限额预警` · `rate limit` · `context window` · `token 用量` · `订阅制` · `按量付费` · `CLI` · `零依赖`
+
+<sub>社区项目，非 Anthropic 官方出品。Claude 与 Claude Code 是 Anthropic 的商标。</sub>
 
 </div>
 

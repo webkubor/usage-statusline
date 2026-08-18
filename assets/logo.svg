@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128" role="img" aria-label="usage-statusline">
+  <title>usage-statusline</title>
+  <defs>
+    <!-- Same sage → amber → coral ramp the default theme uses, so the icon reads
+         as the thing it represents: calm on the left, alarming on the right. -->
+    <linearGradient id="ramp" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#74B388"/>
+      <stop offset="0.55" stop-color="#D1B566"/>
+      <stop offset="0.8" stop-color="#DE8A5F"/>
+      <stop offset="1" stop-color="#D65D5D"/>
+    </linearGradient>
+  </defs>
+
+  <rect width="128" height="128" rx="28" fill="#1D1D21"/>
+
+  <!-- Three gauges at increasing fill: the bar's own colour tells you where the
+       danger zone is before the fill arrives there. -->
+  <g>
+    <rect x="24" y="38" width="80" height="10" rx="5" fill="#3A3A42"/>
+    <rect x="24" y="38" width="22" height="10" rx="5" fill="url(#ramp)"/>
+  </g>
+  <g>
+    <rect x="24" y="59" width="80" height="10" rx="5" fill="#3A3A42"/>
+    <rect x="24" y="59" width="46" height="10" rx="5" fill="url(#ramp)"/>
+  </g>
+  <g>
+    <rect x="24" y="80" width="80" height="10" rx="5" fill="#3A3A42"/>
+    <rect x="24" y="80" width="72" height="10" rx="5" fill="url(#ramp)"/>
+  </g>
+</svg>

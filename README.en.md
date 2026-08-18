@@ -1,21 +1,27 @@
 <div align="center">
 
+<img src="./assets/logo.png" width="84" alt="usage-statusline">
+
 # usage-statusline
 
-**See what you've spent, how much context is left, how close you are to your limits — and whether hitting one stops you dead.**
+### A status line for **Claude Code**
 
-[![License: MIT](https://img.shields.io/badge/License-MIT-black.svg)](./LICENSE)
+**What you've spent, how much context is left, how close you are to your limits, and whether hitting one stops you dead — on the line you're already looking at.**
+
+[![for Claude Code](https://img.shields.io/badge/for-Claude%20Code-D97757?logo=anthropic&logoColor=white)](https://claude.com/claude-code)
+[![statusLine API](https://img.shields.io/badge/uses-statusLine%20hook-D97757?logo=anthropic&logoColor=white)](https://docs.claude.com/en/docs/claude-code/statusline)
+[![License: MIT](https://img.shields.io/badge/License-MIT-black)](./LICENSE)
 [![Python](https://img.shields.io/badge/python-3.8%2B-3776AB?logo=python&logoColor=white)](https://www.python.org/)
 [![Zero dependencies](https://img.shields.io/badge/dependencies-0-success)](#how-it-works)
 [![Single file](https://img.shields.io/badge/single%20file-~440%20lines-informational)](./scripts/statusline.py)
-[![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Linux-lightgrey)](#install)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen)](https://github.com/webkubor/usage-statusline/pulls)
 
 [中文](./README.md) · [Install](#install) · [Subscription vs pay-as-you-go](#subscription-vs-pay-as-you-go) · [Segments](#extension-segments) · [Alternatives](#how-it-compares)
 
-<img src="./assets/statusline.png" width="900" alt="Status line in three states: subscription, limit running out, pay-as-you-go">
+<img src="./assets/statusline.png" width="900" alt="Claude Code status line: subscription, limit running out, pay-as-you-go, themes">
 
 `Claude Code` · `statusline` · `usage monitor` · `rate limit` · `context window` · `token usage` · `subscription` · `pay-as-you-go` · `CLI` · `zero dependencies`
+
+<sub>A community project, not affiliated with or endorsed by Anthropic. Claude and Claude Code are trademarks of Anthropic.</sub>
 
 </div>
 
