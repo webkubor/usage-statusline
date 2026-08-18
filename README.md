@@ -100,11 +100,13 @@ my-project main ±3 ↑2  Opus 5·high                 ← 目录 + git 状态 +
 
 ## 主题
 
-三套内置主题，**默认就调好，不用配置**：
+三套内置主题，**默认就调好，不用配置**。想换的话一行就够，**立即生效不用重启**：
 
 ```bash
-export USAGE_STATUSLINE_THEME=cool     # default | cool | mono
+echo cool > ~/.claude/statusline/theme     # default | cool | mono
 ```
+
+在 Claude Code 里也可以直接说 `/usage-statusline cool`，或者「状态栏换成灰的」。
 
 | 主题 | 色带 | 适合 |
 |---|---|---|

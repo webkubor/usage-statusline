@@ -101,11 +101,14 @@ Higher per-token rate — but it only costs real money on pay-as-you-go, so subs
 
 ## Themes
 
-Three built in, **tuned to look right with no configuration**:
+Three built in, **tuned to look right with no configuration**. Switching is one line and
+**takes effect immediately — no restart**:
 
 ```bash
-export USAGE_STATUSLINE_THEME=cool     # default | cool | mono
+echo cool > ~/.claude/statusline/theme     # default | cool | mono
 ```
+
+Inside Claude Code you can also just say `/usage-statusline cool`, or "make the status line grey".
 
 | Theme | Ramp | Good for |
 |---|---|---|

@@ -57,7 +57,28 @@ THEMES = {
     # disappear into the terminal until it matters.
     "mono": [(0, (0x6E, 0x6E, 0x78)), (55, (0x9A, 0x9A, 0xA4)), (80, (0xC6, 0xC6, 0xCE)), (100, (0xF0, 0xF0, 0xF4))],
 }
-THEME = THEMES.get(os.environ.get("USAGE_STATUSLINE_THEME", "default"), THEMES["default"])
+THEME_FILE = os.path.expanduser("~/.claude/statusline/theme")
+
+
+def _active_theme():
+    """Theme name from $USAGE_STATUSLINE_THEME, else the theme file, else default.
+
+    The file exists so switching themes takes effect on the next redraw. Putting
+    the name in settings.json's env instead would mean restarting Claude Code to
+    see a color change, which is too slow to be worth doing interactively.
+    An unknown or unreadable name silently falls back to default.
+    """
+    name = os.environ.get("USAGE_STATUSLINE_THEME")
+    if not name:
+        try:
+            with open(THEME_FILE) as handle:
+                name = handle.read().strip()
+        except Exception:
+            name = ""
+    return THEMES.get(name, THEMES["default"])
+
+
+THEME = _active_theme()
 # 8-color fallback keeps the same calm→alarm reading on terminals without truecolor.
 BASIC = [(0, "\033[32m"), (55, "\033[33m"), (80, "\033[31m")]
 

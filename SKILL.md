@@ -9,6 +9,35 @@ metadata:
 
 # usage-statusline
 
+## 先分派：这次要干什么
+
+| 用户说的 | 做什么 | 往下读哪 |
+|---|---|---|
+| `default` / `cool` / `mono`（或「切主题」「换成青色」「太花了换灰的」） | **只切主题**，别碰安装 | 「切换主题」一节，两行命令搞定 |
+| 「装一下」「配置状态栏」/ 首次调用 / 无参数 | 走完整安装 | 「安装步骤」 |
+| 「不显示了」「没生效」「怎么卸载」 | 排查或卸载 | 「安装步骤」第 5 步 / 「卸载」 |
+
+切主题是最常被调用的，别把它当安装跑一遍——那会重写 `settings.json`，没必要。
+
+## 切换主题
+
+主题名存在 `~/.claude/statusline/theme` 里，脚本每次渲染都读，所以**写完立即生效，不用重启**：
+
+```bash
+echo cool > ~/.claude/statusline/theme     # default | cool | mono
+```
+
+写完直接告诉用户已切好、下一次状态栏刷新就能看到，**不要**让他重启。
+读不到文件或名字不认识都会静默回退 `default`，所以写错不会弄坏什么。
+
+想确认当前是哪个：`cat ~/.claude/statusline/theme`（无文件＝`default`）。
+
+⚠️ 如果用户 `settings.json` 的 `env` 里有 `USAGE_STATUSLINE_THEME`，它会**盖住**这个文件，
+导致「切了没反应」。遇到这种情况把 env 里那条删掉、改用文件（`COLORTERM` 要留着，
+那是真彩支持，跟主题无关）。
+
+## 安装
+
 把这个 skill 安装到 `~/.claude/statusline/usage.py`，并把 `~/.claude/settings.json` 的
 `statusLine` 字段指向它。安装是一次性的：装完之后每次打开 Claude Code 都会自动显示，
 不需要每次手动调用这个 skill。
@@ -29,7 +58,7 @@ my-project main
 每个指标是 10 格色条，**亮色=已用、暗色=剩余**；非零占用至少点亮一格。
 每格按**自己在轨道上的位置**着色，所以右端天生是警戒色，填过去之前就看得见危险区。
 
-三套内置主题（`default` / `cool` / `mono`），环境变量 `USAGE_STATUSLINE_THEME` 切换，
+三套内置主题（`default` / `cool` / `mono`），写 `~/.claude/statusline/theme` 切换（见上「切换主题」），
 默认无需配置。真彩终端走 24 位渐变，否则降级 8 色，`NO_COLOR` 退回 `▓░` 字符。
 
 限额窗口 ≥80% 且账户**没有按量兜底**时会标 `⚠hard stop` —— 意思是撞满不是多花钱，
