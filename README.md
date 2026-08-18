@@ -181,7 +181,25 @@ cd usage-statusline
 行为同上，只是没有对话：合并进 `~/.claude/settings.json`（首次会备份成 `settings.json.bak-usage-statusline`），
 遇到已存在的**不同** `statusLine.command` 会拒绝覆盖。
 
+### 方式 C —— 跟随主线（不拷副本）
+
+```bash
+git clone https://github.com/webkubor/usage-statusline
+cd usage-statusline
+./install.sh --link
+```
+
+不把脚本拷到 `~/.claude/`，而是让 Claude Code **直接跑这个 clone 里的文件**。
+好处是升级就一句 `git pull`，而且**不存在第二份副本悄悄落后**的问题——
+方式 A/B 都要记得重装一次才生效，忘了就会出现「代码改了但状态栏没变」。
+
+代价是它跑的是你**当前 checkout 的内容，包括未提交的改动**。想改着玩就用这个，
+想要稳定就用 A/B。
+
 装完**重启 Claude Code**（或开个新会话）——`statusLine` 是启动时读的。
+
+> 三种方式的 `segments/` 和 `history.jsonl` 都在 `~/.claude/statusline/` 下（路径写在脚本里，
+> 跟脚本本身放哪无关），所以换装法不会丢扩展段和采样历史。
 
 ## 扩展段：把你自己的东西加上去
 

@@ -1,16 +1,38 @@
 #!/usr/bin/env bash
 # Manual installer for people who aren't going through the Claude Code
 # Skill flow — just clone the repo and run this once.
+#
+#   ./install.sh            copy the script to ~/.claude/statusline/usage.py
+#   ./install.sh --link     point Claude Code at this clone instead of copying,
+#                           so `git pull` is the whole upgrade and there is no
+#                           second copy that can silently fall behind
 set -euo pipefail
 
+mode="copy"
+if [[ "${1:-}" == "--link" ]]; then
+  mode="link"
+elif [[ -n "${1:-}" ]]; then
+  echo "Unknown argument: $1 (expected --link or nothing)" >&2
+  exit 2
+fi
+
 repo_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-target="$HOME/.claude/statusline/usage.py"
 settings="$HOME/.claude/settings.json"
 
-mkdir -p "$(dirname "$target")"
-cp "$repo_dir/scripts/statusline.py" "$target"
-chmod +x "$target"
-echo "Installed script -> $target"
+if [[ "$mode" == "link" ]]; then
+  target="$repo_dir/scripts/statusline.py"
+  chmod +x "$target"
+  echo "Tracking this clone -> $target"
+  echo "  Upgrade with: git -C $repo_dir pull"
+  echo "  Note: the status line runs whatever is checked out here, including"
+  echo "        uncommitted edits — that is the point, but be aware of it."
+else
+  target="$HOME/.claude/statusline/usage.py"
+  mkdir -p "$(dirname "$target")"
+  cp "$repo_dir/scripts/statusline.py" "$target"
+  chmod +x "$target"
+  echo "Installed script -> $target"
+fi
 
 # Extension segments live next to the script and are never touched by an
 # upgrade — reinstalling this repo keeps whatever local segments you dropped in.

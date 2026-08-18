@@ -59,6 +59,11 @@ find ~/.claude/skills ~/.claude/plugins . -maxdepth 6 -type f -path "*usage-stat
 
 **第 2 步 — 把脚本落地到一个稳定路径，不依赖 skill 目录以后还在不在。**
 
+> 例外：如果用户明确说要**跟着 GitHub 主线走 / 不要副本 / 改完就生效**，就别拷贝——
+> 直接把 `statusLine.command` 指向那个 git clone 里的 `scripts/statusline.py`
+> （等同 `./install.sh --link`），升级就是 `git pull`。代价是跑的是当前 checkout、
+> 含未提交改动，要跟用户说明。默认仍走下面的拷贝方式。
+
 ```bash
 mkdir -p ~/.claude/statusline/segments
 cp "$SKILL_DIR/scripts/statusline.py" ~/.claude/statusline/usage.py

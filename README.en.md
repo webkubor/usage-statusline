@@ -185,7 +185,27 @@ cd usage-statusline
 
 Same behavior, minus the conversation: merges into `~/.claude/settings.json` (backing the original up to `settings.json.bak-usage-statusline` on first run) and refuses to clobber a different existing `statusLine.command`.
 
+### Option C — track main (no copy)
+
+```bash
+git clone https://github.com/webkubor/usage-statusline
+cd usage-statusline
+./install.sh --link
+```
+
+Instead of copying the script into `~/.claude/`, Claude Code runs **the file in this clone**.
+Upgrading is just `git pull`, and there's **no second copy that can quietly fall behind** —
+with A/B you have to remember to reinstall, and forgetting gives you "the code changed but
+the status line didn't".
+
+The tradeoff: it runs whatever is checked out, **including uncommitted edits**. Use this if
+you plan to hack on it; use A/B if you want stability.
+
 Restart Claude Code afterwards — `statusLine` is read at startup.
+
+> In all three modes, `segments/` and `history.jsonl` live under `~/.claude/statusline/`
+> (those paths are in the script, independent of where the script itself lives), so switching
+> install modes never loses your segments or sample history.
 
 ## Extension segments
 
