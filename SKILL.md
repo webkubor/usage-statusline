@@ -13,19 +13,23 @@ metadata:
 `statusLine` 字段指向它。安装是一次性的：装完之后每次打开 Claude Code 都会自动显示，
 不需要每次手动调用这个 skill。
 
-效果示例（真实数值会不同）：
+效果示例（真实数值会不同，输出两行）：
 
 ```
-my-project main  $0.62·ctx 7%·5h 7%(20:10)·7d 8%(08-17)
+my-project main
+$0.62·ctx ▓░░░░░░░░░ 7%·5h ▓░░░░░░░░░ 7%(20:10)·7d ▓░░░░░░░░░ 8%(08-17)
 ```
 
 - `my-project main` — 当前目录名 + git 分支（无 git 仓库则只显示目录名）
 - `$0.62` — 本次会话累计花费
-- `ctx 7%` — 上下文窗口占用率
-- `5h 7%(20:10)` — 5 小时限额用量 7%，20:10 重置
-- `7d 8%(08-17)` — 7 天限额用量 8%，08-17 重置
+- `ctx … 7%` — 上下文窗口占用率
+- `5h … 7%(20:10)` — 5 小时限额用量 7%，20:10 重置
+- `7d … 8%(08-17)` — 7 天限额用量 8%，08-17 重置
 
+每个指标是 10 格条形，不用读数字就能看出「满没满」；非零占用至少点亮一格。
 百分比达到 50% 变黄、80% 变红，低于 50% 是绿色/灰色。
+
+第一行还会追加**本地扩展段**的输出（见下方「扩展段」），没装扩展段时就只有目录 + 分支。
 
 ## 安装步骤（Claude 执行）
 
@@ -43,10 +47,13 @@ find ~/.claude/skills ~/.claude/plugins . -maxdepth 6 -type f -path "*usage-stat
 **第 2 步 — 把脚本落地到一个稳定路径，不依赖 skill 目录以后还在不在。**
 
 ```bash
-mkdir -p ~/.claude/statusline
+mkdir -p ~/.claude/statusline/segments
 cp "$SKILL_DIR/scripts/statusline.py" ~/.claude/statusline/usage.py
 chmod +x ~/.claude/statusline/usage.py
 ```
+
+`segments/` 是扩展段目录，**只创建、绝不清空**——用户已有的扩展段是他自己的东西，
+重装本 skill 不该动它们。
 
 **第 3 步 — 读 `~/.claude/settings.json`，合并写入 `statusLine` 字段。**
 
@@ -78,11 +85,26 @@ echo '{"cwd":"'"$PWD"'","cost":{"total_cost_usd":0.1},"context_window":{"used_pe
   | ~/.claude/statusline/usage.py
 ```
 
-确认输出是一行、没有报错、包含 `$0.10`、`ctx 5%`、`5h 5%`、`7d 5%` 这些片段。
+确认输出是两行、没有报错，第二行包含 `$0.10`、`ctx`、`5h`、`7d` 各自的条形和 `5%`。
 
 **第 5 步 — 告诉用户装完了**，下次打开 Claude Code（或新开一个窗口）状态栏就会自动出现这行，
 不需要再运行这个 skill。如果状态栏没变化，提醒用户重启一下 Claude Code 会话（`statusLine` 是
 启动时读取的配置）。
+
+## 扩展段（用户想在状态栏加别的东西时走这里）
+
+用户要显示的**不是用量**（后台任务心跳、队列深度、值班状态、部署状态……）时，
+不要改 `usage.py`，做成扩展段：往 `~/.claude/statusline/segments/` 放一个可执行文件。
+
+契约：
+
+- 按文件名排序执行（用 `10-`、`20-` 前缀排顺序）
+- stdin 收到和主脚本**同一份 payload JSON**（用不上也要读掉，否则上游拿到 EPIPE）
+- **stdout 第一行**会被追加到状态栏第一行；不输出 = 不显示
+- 可以用 ANSI 颜色；自行尊重 `NO_COLOR`
+- 段失败 / 超时（1 秒）/ 没有可执行位 → 静默跳过，坏段永远不会弄坏状态栏
+
+段放在仓库外，所以升级、重装都不会碰它们，私有内容也不会进公开 checkout。
 
 ## 卸载
 
@@ -91,7 +113,8 @@ echo '{"cwd":"'"$PWD"'","cost":{"total_cost_usd":0.1},"context_window":{"used_pe
 
 ## 反唤起信号
 
-- 用户已经有自己的 statusLine 脚本、只是想加用量这一段 —— 不要覆盖对方脚本，改为建议把
-  `scripts/statusline.py` 的输出拼接进对方脚本里，或者作为独立一段追加。
+- 用户已经有自己的 statusLine 脚本、只是想加用量这一段 —— 不要覆盖对方脚本。两条路：
+  把对方脚本里非用量的部分改造成**扩展段**（见上）然后切到本脚本；或者保留对方脚本作入口，
+  在里面调 `~/.claude/statusline/usage.py` 把输出拼进去。选哪条问用户。
 - 用户问的是"用量还剩多少"这种一次性查询，不是要装状态栏 —— 直接查 `~/.claude/settings.json`
   里现在生效的用量信息或建议用官方 `/usage` 类命令，不必安装本 skill。

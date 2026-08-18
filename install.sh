@@ -12,6 +12,12 @@ cp "$repo_dir/scripts/statusline.py" "$target"
 chmod +x "$target"
 echo "Installed script -> $target"
 
+# Extension segments live next to the script and are never touched by an
+# upgrade — reinstalling this repo keeps whatever local segments you dropped in.
+segments_dir="$HOME/.claude/statusline/segments"
+mkdir -p "$segments_dir"
+echo "Extension segments dir -> $segments_dir"
+
 python3 - "$settings" "$target" <<'PY'
 import json
 import os
