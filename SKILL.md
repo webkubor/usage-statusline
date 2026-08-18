@@ -1,7 +1,7 @@
 ---
 name: usage-statusline
-version: 1.0.0
-description: "在 Claude Code 状态栏常驻显示本次会话花费、上下文占用率、以及 5 小时/7 天限额用量百分比和重置倒计时。触发词：装/配置 usage statusline、状态栏加用量提示、想在状态栏看还剩多少配额、usage indicator、rate limit statusline。调用一次即完成安装，之后每次开 Claude Code 自动显示，无需重复调用。"
+version: 1.1.0
+description: "在 Claude Code 状态栏常驻显示：会话花费（区分订阅制等价金额与按量付费实际账单）、上下文占用、5 小时/7 天限额条与重置时刻、无按量兜底时的硬停预警、5h 窗口燃尽预测、git 未提交/未推送计数、当前模型与 effort 档位；含三套主题与本地扩展段机制。触发词：装/配置 usage statusline、状态栏加用量提示、想在状态栏看还剩多少配额、状态栏显示模型/git 状态、切换状态栏主题、usage indicator、rate limit statusline。调用一次即完成安装，之后每次开 Claude Code 自动显示，无需重复调用。"
 metadata:
   requires:
     bins: ["python3"]
@@ -43,6 +43,20 @@ my-project main
 用户不想要任何状态文件时告诉他设 `USAGE_STATUSLINE_NO_HISTORY=1`。
 
 第一行还会追加**本地扩展段**的输出（见下方「扩展段」），没装扩展段时就只有目录 + 分支。
+
+## 三种安装模式（README 只写一键入口，细节在这里）
+
+| 模式 | 怎么装 | statusLine 指向 | 升级 | 什么时候用 |
+|---|---|---|---|---|
+| **skill 流程**（默认） | 用户执行 `/usage-statusline`，Claude 照下面步骤做 | `~/.claude/statusline/usage.py`（副本） | 重跑一次 skill | 默认推荐，装完稳定不变 |
+| **脚本** | `./install.sh` | 同上（副本） | 重跑 `./install.sh` | 不走 Claude、CI、或写进 dotfiles |
+| **跟随主线** | `./install.sh --link` | clone 里的 `scripts/statusline.py` | `git pull` | 用户要「改完就生效 / 不留副本 / 跟着 GitHub 走」 |
+
+副本模式的坑：改了仓库忘了重装，状态栏还在跑旧副本（会表现为「代码明明改了但状态栏没变」）。
+`--link` 没这个问题，代价是跑的是当前 checkout **含未提交改动**。用户没明说时用副本模式。
+
+**三种模式共用** `~/.claude/statusline/segments/` 和 `history.jsonl`（路径写在脚本里，
+与脚本放哪无关），所以换模式不会丢用户的扩展段和采样历史。
 
 ## 安装步骤（Claude 执行）
 
